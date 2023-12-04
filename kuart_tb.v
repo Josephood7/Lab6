@@ -142,7 +142,7 @@ module uart_tb;
 	initial begin
 		$dumpfile("uart.vcd");
 		$dumpvars(0, uart_tb);
-
+		/*
 		// Repeat cycles of 1000 clock edges as needed to complete testbench
 		repeat (200) begin
 			repeat (10000) @(posedge clock);
@@ -156,20 +156,18 @@ module uart_tb;
 		`endif
 		$display("%c[0m",27);
 		$finish;
+		*/
 	end
 
 	initial begin
 		wait(checkbits == 16'hAB40);
-		$display("LA Test 1 started");
-
-		// uart
-		send_data_2;
+		
 		//#2000000;
-		wait(checkbits == 16'hAB51);
-		$display("UART done");
-
-		wait(checkbits == 16'hAB40);
+		
 		// fir
+		//wait(checkbits == 16'hAB40);
+		$display("FIR started");
+		
 		wait(checkbits == 16'h0000);
 		$display("Call function fir() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'hFFF6);
@@ -178,10 +176,14 @@ module uart_tb;
 		$display("Call function fir() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'h0023);
 		$display("Call function fir() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
+		wait(checkbits == 16'hAB51);
+		
 		$display("FIR done");
 
-		wait(checkbits == 16'hAB40);
+		
 		// matrix multiplier
+		//wait(checkbits == 16'hAB40);
+		$display("Matrix multiplier started");
 		wait(checkbits == 16'h003E);
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'h0044);
@@ -190,10 +192,13 @@ module uart_tb;
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'h0050);
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
+		//wait(checkbits == 16'hAB51);
 		$display("Matrix multiplier done");
 
-		wait(checkbits == 16'hAB40);
+		
 		// quick sort
+		//wait(checkbits == 16'hAB40);
+		$display("Quick Sort started");
 		wait(checkbits == 16'd40);
 		$display("Call function qsort() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'd893);
@@ -202,8 +207,16 @@ module uart_tb;
 		$display("Call function qsortl() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'd2669);
 		$display("Call function qsort() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
+		//wait(checkbits == 16'hAB51);
 		$display("Quick sort done");
 
+		$display("UART started");
+
+		// uart
+		send_data_2;
+		
+		//wait(checkbits == 16'hAB51);
+		
 		//wait(checkbits == 61);
 		//send_data_1;
 		//wait(checkbits == 15);
@@ -211,8 +224,9 @@ module uart_tb;
 		//$display("LA Test 1 passed");
 
 		wait(checkbits == 16'hAB51);
-		
-		$display("LA Test 1 passed");
+		#1000000;
+		$display("UART done");
+		$display("LA Test passed");
 		$finish;		
 	end
 
