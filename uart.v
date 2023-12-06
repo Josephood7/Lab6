@@ -123,14 +123,22 @@ module uart #(
 
   // mprj starts
   always @(posedge clk) begin
-    io_out_r <= (decoded)? count:0;
-    io_oeb_r <= (decoded)? ({(`MPRJ_IO_PADS-1){rst}}):0;
+    if(decoded) begin
+        io_out_r <= count;
+        io_oeb_r <= {(`MPRJ_IO_PADS-1){rst}};
+    end else if(wbs_adr_i[31:8] == 32'h3000_00) begin
+        io_oeb_r[6] <= 1'b0; // Set mprj_io_31 to output
+        io_oeb_r[5] <= 1'b1; // Set mprj_io_30 to input
+        io_out_r[6] <= tx;	// Connect mprj_io_6 to tx
+    end
   end
+  /*
   always @(posedge clk_u) begin
     io_oeb_r[6] <= (wbs_adr_i[31:8] == 32'h3000_00)? 1'b0:io_oeb[6]; // Set mprj_io_31 to output
     io_oeb_r[5] <= (wbs_adr_i[31:8] == 32'h3000_00)? 1'b1:io_oeb[5]; // Set mprj_io_30 to input
     io_out_r[6] <= (wbs_adr_i[31:8] == 32'h3000_00)? tx:io_out[6];	// Connect mprj_io_6 to tx
   end
+  */
   always @(posedge clk) begin
         if (rst) begin
             ready <= 1'b0;
