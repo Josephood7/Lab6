@@ -27,12 +27,20 @@ module uart_tb;
 	wire gpio;
 	wire [37:0] mprj_io;
 	wire [15:0] checkbits;
+	// uart
 	wire uart_tx;
 	wire uart_rx;
 	reg tx_start;
 	reg [7:0] tx_data;
 	wire tx_busy;
 	wire tx_clear_req;
+	// uart2
+	wire uart_tx2;
+	wire uart_rx2;
+	reg tx_start2;
+	reg [7:0] tx_data2;
+	wire tx_busy2;
+	wire tx_clear_req2;
 
 	assign checkbits  = mprj_io[31:16];
 	assign uart_tx = mprj_io[6];
@@ -163,6 +171,35 @@ module uart_tb;
 		wait(checkbits == 16'hAB40);
 		
 		//#2000000;
+		$display("Firmware started");
+		send_data_1;
+		$display("Firmware ended");
+			
+		$display("UART started");
+
+		// uart
+		send_data_2;
+		
+		//wait(checkbits == 16'hAB51);
+		//wait(mprj_io[6] == 1'b0);
+
+		//wait(checkbits == 61);
+		//send_data_1;
+		//wait(checkbits == 15);
+		//#10000;
+		//$display("LA Test 1 passed");
+
+		wait(checkbits == 16'hAB51);
+		#1000000;
+		$display("UART done");
+		$display("LA Test passed");
+		$finish;		
+	end
+
+	task send_data_1;begin
+		@(posedge clock);
+		tx_start = 1;
+		tx_data = 15;
 		
 		// fir
 		//wait(checkbits == 16'hAB40);
@@ -209,31 +246,6 @@ module uart_tb;
 		$display("Call function qsort() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		//wait(checkbits == 16'hAB51);
 		$display("Quick sort done");
-
-		$display("UART started");
-
-		// uart
-		send_data_2;
-		
-		//wait(checkbits == 16'hAB51);
-		
-		//wait(checkbits == 61);
-		//send_data_1;
-		//wait(checkbits == 15);
-		//#10000;
-		//$display("LA Test 1 passed");
-
-		wait(checkbits == 16'hAB51);
-		#1000000;
-		$display("UART done");
-		$display("LA Test passed");
-		$finish;		
-	end
-
-	task send_data_1;begin
-		@(posedge clock);
-		tx_start = 1;
-		tx_data = 15;
 		
 		#50;
 		wait(!tx_busy);
@@ -244,12 +256,12 @@ module uart_tb;
 
 	task send_data_2;begin
 		@(posedge clock);
-		tx_start = 1;
-		tx_data = 61;
+		tx_start2 = 1;
+		tx_data2 = 61;
 		
 		#50;
-		wait(!tx_busy);
-		tx_start = 0;
+		wait(!tx_busy2);
+		tx_start2 = 0;
 		$display("tx complete 2");
 		
 	end endtask
@@ -338,6 +350,14 @@ module uart_tb;
 		.tx_data(tx_data),
 		.tx_busy(tx_busy),
 		.tx_clear_req(tx_clear_req)
+	);
+	tbuart tbuart2 (
+		.ser_rx(uart_tx2),
+		.tx_start(tx_start2),
+		.ser_tx(uart_rx2),
+		.tx_data(tx_data2),
+		.tx_busy(tx_busy2),
+		.tx_clear_req(tx_clear_req2)
 	);
 
 endmodule
