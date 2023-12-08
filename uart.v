@@ -55,7 +55,10 @@ module uart #(
   reg ready;
   reg [BITS-17:0] delayed_count;
   reg [`MPRJ_IO_PADS-1:0] io_out_r;
-  reg [`MPRJ_IO_PADS-1:0] io_oeb_r; 
+  reg [`MPRJ_IO_PADS-1:0] io_oeb_r;
+  
+  wire wb_ack_o_u;
+  wire [31:0] wb_dat_ou; 
                       // WB MI A
   assign valid = (decoded)? wbs_cyc_i && wbs_stb_i:0; 
   assign wstrb = (decoded)? (wbs_sel_i & {4{wbs_we_i}}):0;
@@ -72,19 +75,19 @@ module uart #(
                       // Assuming LA probes [63:32] are for controlling the count register  
   assign la_write = ~la_oenb[63:32] & ~{BITS{valid}};
                       // Assuming LA probes [65:64] are for controlling the count clk & reset  
-  assign clk = (wbs_adr_i[31:8] == 32'h3800_00)? ((~la_oenb[64]) ? la_data_in[64]: wb_clk_i):0;
-  assign rst = (wbs_adr_i[31:8] == 32'h3800_00)? ((~la_oenb[65]) ? la_data_in[65]: wb_rst_i):0;
+  assign clk = (~la_oenb[64]) ? la_data_in[64]: wb_clk_i;
+  assign rst = (~la_oenb[65]) ? la_data_in[65]: wb_rst_i;
   assign decoded = wbs_adr_i[31:20] == 12'h380 ? 1'b1 : 1'b0;
   // mprj (firmware) definition ends
 
   // UART 
   wire  tx;
   wire  rx;
-  wire  clk_u;
-  wire  rst_u;
+  //wire  clk_u;
+  //wire  rst_u;
   
-  assign clk_u = (wbs_adr_i[31:8] == 32'h3000_00)? wb_clk_i:0;
-  assign rst_u = (wbs_adr_i[31:8] == 32'h3000_00)? wb_rst_i:0;
+  //assign clk_u = (wbs_adr_i[31:8] == 32'h3000_00)? wb_clk_i:0;
+  //assign rst_u = (wbs_adr_i[31:8] == 32'h3000_00)? wb_rst_i:0;
   //assign io_oeb_r[6] = (wbs_adr_i[31:8] == 32'h3000_00)? 1'b0:io_oeb[6]; // Set mprj_io_31 to output
   //assign io_oeb_r[5] = (wbs_adr_i[31:8] == 32'h3000_00)? 1'b1:io_oeb[5]; // Set mprj_io_30 to input
   //assign io_out_r[6] = (wbs_adr_i[31:8] == 32'h3000_00)? tx:io_out[6];	// Connect mprj_io_6 to tx
@@ -108,14 +111,33 @@ module uart #(
   wire wb_valid;
   wire frame_err;
   
-  // 32'h3000_0000 memory regions of user project  
+  //assign b_valid = wbs_cyc_i && wbs_stb_i;
+  wire wb_we_u;
+  wire [3:0] wb_sel_u;
+  wire [31:0] wb_dat_iu;
+  wire [31:0] wb_adr_u;
+
+  // 32'h3000_0000 memory regions of user project
+  /*
+  always @(posedge clk) begin
+    if(wbs_adr_i[31:8] == 32'h3000_00) begin
+        b_valid = wbs_cyc_i && wbs_stb_i;
+        wb_we_u_r = wbs_we_i;
+        wb_sel_u_r = wbs_sel_i;
+        wb_dat_iu_r = wbs_dat_i;
+        wb_adr_u_r = wbs_adr_i;
+    end
+  end
+  */  
   assign wb_valid = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_cyc_i && wbs_stb_i : 1'b0;
   assign wb_we_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_we_i : 1'b0;
-  assign wb_sel_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_sel_i : 1'b0;
-  assign wb_dat_iu = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_dat_i : 1'b0;
-  assign wb_adr_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_adr_i : 1'b0;
-  //assign wb_ack_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_ack_o && wbs_stb_i : 1'b0;
-  //assign wbs_dat_o = (wbs_adr_i[31:8] == 32'h3000_00) ? wb_dat_ou : 1'b0;
+  assign wb_sel_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_sel_i : 4'b0;
+  assign wb_dat_iu = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_dat_i : 32'b0;
+  assign wb_adr_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wbs_adr_i : wb_adr_u;
+  
+  //assign wb_ack_u = (wbs_adr_i[31:8] == 32'h3000_00) ? wb_ack_o && wbs_stb_i : 1'b0;
+  //assign wbs_dat_o = (wbs_adr_i[31:8] == 32'h3000_00) ? wb_dat_ou : 32'b0;
+  
   assign io_oeb = io_oeb_r;
   assign io_out = io_out_r;
   wire [31:0] clk_div;
@@ -181,8 +203,8 @@ module uart #(
   // mprj ends
 
   uart_receive receive(
-    .rst_n      (~rst_u  ),
-    .clk        (clk_u   ),
+    .rst_n      (~wb_rst_i  ),
+    .clk        (wb_clk_i   ),
     .clk_div    (clk_div    ),
     .rx         (rx         ),
     .rx_data    (rx_data    ),
@@ -193,8 +215,8 @@ module uart #(
   );
 
   uart_transmission transmission(
-    .rst_n      (~rst_u  ),
-    .clk        (clk_u   ),
+    .rst_n      (~wb_rst_i  ),
+    .clk        (wb_clk_i   ),
     .clk_div    (clk_div    ),
     .tx         (tx         ),
     .tx_data    (tx_data    ),
@@ -204,9 +226,9 @@ module uart #(
   );
   
   ctrl ctrl(
-	.rst_n		(~rst_u),
-	.clk		  (clk_u	),
-  .i_wb_valid(wb_valid),
+	.rst_n		(~wb_rst_i),
+	.clk		  (wb_clk_i	),
+    .i_wb_valid(wb_valid),
 	.i_wb_adr	(wb_adr_u),
 	.i_wb_we	(wb_we_u	),
 	.i_wb_dat	(wb_dat_iu),
