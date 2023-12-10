@@ -19,12 +19,12 @@
 #include <defs.h>
 #include <user_uart.h>
 #include <stub.c>
-#ifdef USER_PROJ_IRQ0_EN
+//#ifdef USER_PROJ_IRQ0_EN
 #include <irq_vex.h>
-#endif
+//#endif
 //#include <unistd.h>
 
-#define d (*(volatile uint32_t *) 0x30000000)
+//#define d (*(volatile uint32_t *) 0x30000000)
 
 extern void uart_write();
 extern void uart_write_char();
@@ -47,9 +47,9 @@ extern int* qsort();
 
 void main()
 {
-#ifdef USER_PROJ_IRQ0_EN
-    int mask;
-#endif
+	//#ifdef USER_PROJ_IRQ0_EN
+   	int mask;
+	//#endif
 	/* Set up the housekeeping SPI to be connected internally so	*/
 	/* that external pin changes don't affect it.			*/
 
@@ -84,7 +84,7 @@ void main()
 		}
 	}*/
 	
-	int NN = 5000;
+	int NN = 20000;
 	//sleep(10);
 	int i = 0;
 	while(i < NN){
@@ -94,13 +94,91 @@ void main()
 	/*for(int i = 0; i < 4; i++){
 		uart_write(i);
 	}*/
+	
+		// Uart
+	
+	//reg_spi_enable = 1;
+	reg_wb_enable = 1;
 
+    	reg_mprj_io_31 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_30 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_29 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_28 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_27 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_26 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_25 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_24 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_23 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_22 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_21 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_20 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_19 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_18 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_17 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_16 = GPIO_MODE_MGMT_STD_OUTPUT;
+
+    	reg_mprj_io_15 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_14 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_13 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_12 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_11 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_10 = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_9  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_8  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_7  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_4  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_3  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_2  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_1  = GPIO_MODE_MGMT_STD_OUTPUT;
+    	reg_mprj_io_0  = GPIO_MODE_MGMT_STD_OUTPUT;
+
+    	reg_mprj_io_6  = GPIO_MODE_USER_STD_OUTPUT;
+    	reg_mprj_io_5  = GPIO_MODE_USER_STD_INPUT_NOPULL;
+	
+
+	/* Apply configuration */
+	reg_mprj_xfer = 1;
+	while (reg_mprj_xfer == 1);
+
+        // Configure LA probes [31:0], [127:64] as inputs to the cpu 
+	// Configure LA probes [63:32] as outputs from the cpu
+	reg_la0_oenb = reg_la0_iena = 0x00000000;    // [31:0]
+	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;    // [63:32]
+	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
+	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
+
+	// Flag start of the test 
+	//reg_mprj_datal = 0xAB800000;
+
+	// Set Counter value to zero through LA probes [63:32]
+	reg_la1_data = 0x00000000;
+
+	// Configure LA probes from [63:32] as inputs to disable counter write
+	reg_la1_oenb = reg_la1_iena = 0x00000000;
+
+	//uart_write(1);
+	
+	//int* tmp_ur = uart_read();
+	//reg_mprj_datal = *tmp_ur << 16;
+	
+	//reg_mprj_datal = 0xAB810000;
+	
+	//#ifdef USER_PROJ_IRQ0_EN	
+	// unmask USER_IRQ_0_INTERRUPT
+	mask = irq_getmask();
+	mask |= 1 << USER_IRQ_0_INTERRUPT; // USER_IRQ_0_INTERRUPT = 2
+	irq_setmask(mask);
+	// enable user_irq_0_ev_enable
+	user_irq_0_ev_enable_write(1);	
+	//#endif
+	
+	reg_mprj_datal = 0xAB510000;
 	//uart_write_string("TEST!");
 
 	//reg_mprj_datal = uart_isr();
 
 	//print("\n");
-	//print("Monitor: Test 1 Passed\n\n");	// Makes simulation very long!
+	//print("Monitor: Test 1 Passed\n\n");S	// Makes simulation very long!
 	//reg_mprj_datal = 0xAB510000;
 	//reg_mprj_datal = 0x00000000;
 	int j;
@@ -225,15 +303,6 @@ void main()
 	reg_mprj_datal = *(tmp_m+3) << 16;	
 	reg_mprj_datal = *(tmp_m+9) << 16;	
 	
-	#ifdef USER_PROJ_IRQ0_EN	
-	// unmask USER_IRQ_0_INTERRUPT
-	mask = irq_getmask();
-	mask |= 1 << USER_IRQ_0_INTERRUPT; // USER_IRQ_0_INTERRUPT = 2
-	irq_setmask(mask);
-	// enable user_irq_0_ev_enable
-	user_irq_0_ev_enable_write(1);	
-	#endif
-	
 	reg_mprj_datal = 0xAB610000;
 	
 	i = 0;
@@ -306,81 +375,6 @@ void main()
 	while(i < NN){
 		i++;
 	}
-	// Uart
-	
-	//reg_spi_enable = 1;
-	reg_wb_enable = 1;
 
-    	reg_mprj_io_31 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_30 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_29 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_28 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_27 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_26 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_25 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_24 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_23 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_22 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_21 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_20 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_19 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_18 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_17 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_16 = GPIO_MODE_MGMT_STD_OUTPUT;
-
-    	reg_mprj_io_15 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_14 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_13 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_12 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_11 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_10 = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_9  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_8  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_7  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_4  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_3  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_2  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_1  = GPIO_MODE_MGMT_STD_OUTPUT;
-    	reg_mprj_io_0  = GPIO_MODE_MGMT_STD_OUTPUT;
-
-    	reg_mprj_io_6  = GPIO_MODE_USER_STD_OUTPUT;
-    	reg_mprj_io_5  = GPIO_MODE_USER_STD_INPUT_NOPULL;
-	
-
-	/* Apply configuration */
-	reg_mprj_xfer = 1;
-	while (reg_mprj_xfer == 1);
-
-        // Configure LA probes [31:0], [127:64] as inputs to the cpu 
-	// Configure LA probes [63:32] as outputs from the cpu
-	reg_la0_oenb = reg_la0_iena = 0x00000000;    // [31:0]
-	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;    // [63:32]
-	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
-	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
-
-	// Flag start of the test 
-	//reg_mprj_datal = 0xAB800000;
-
-	// Set Counter value to zero through LA probes [63:32]
-	reg_la1_data = 0x00000000;
-
-	// Configure LA probes from [63:32] as inputs to disable counter write
-	reg_la1_oenb = reg_la1_iena = 0x00000000;
-
-	//uart_write(1);
-	
-	//int* tmp_ur = uart_read();
-	//reg_mprj_datal = *tmp_ur << 16;
-	
-	//reg_mprj_datal = 0xAB810000;
-	reg_mprj_datal = 0xAB410000;
-#ifdef USER_PROJ_IRQ0_EN	
-	// unmask USER_IRQ_0_INTERRUPT
-	mask = irq_getmask();
-	mask |= 1 << USER_IRQ_0_INTERRUPT; // USER_IRQ_0_INTERRUPT = 2
-	irq_setmask(mask);
-	// enable user_irq_0_ev_enable
-	user_irq_0_ev_enable_write(1);	
-#endif
 }
 

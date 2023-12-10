@@ -170,11 +170,7 @@ module uart_tb;
 	initial begin
 		wait(checkbits == 16'hAB40);
 		
-		//#2000000;
-		$display("Firmware started");
-		send_data_1;
-		$display("Firmware ended");
-			
+		//wait(checkbits == 16'hAB80);	
 		$display("UART started");
 
 		// uart
@@ -189,20 +185,15 @@ module uart_tb;
 		//#10000;
 		//$display("LA Test 1 passed");
 
-		wait(checkbits == 16'hAB51);
-		#1000000;
+		wait(checkbits == 16'hAB41);
+		#4000000;
 		$display("UART done");
-		$display("LA Test passed");
-		$finish;		
-	end
-
-	task send_data_1;begin
-		@(posedge clock);
-		tx_start = 1;
-		tx_data = 15;
 		
+		//#2000000;
+		$display("Firmware started");
+		//send_data_1;
 		// fir
-		//wait(checkbits == 16'hAB40);
+		//wait(checkbits == 16'hAB50);
 		$display("FIR started");
 		
 		wait(checkbits == 16'h0000);
@@ -213,13 +204,13 @@ module uart_tb;
 		$display("Call function fir() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'h0023);
 		$display("Call function fir() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
-		wait(checkbits == 16'hAB51);
+		//wait(checkbits == 16'hAB51);
 		
 		$display("FIR done");
 
 		
 		// matrix multiplier
-		//wait(checkbits == 16'hAB40);
+		//wait(checkbits == 16'hAB60);
 		$display("Matrix multiplier started");
 		wait(checkbits == 16'h003E);
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
@@ -229,12 +220,12 @@ module uart_tb;
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'h0050);
 		$display("Call function matmul() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
-		//wait(checkbits == 16'hAB51);
+		//wait(checkbits == 16'hAB61);
 		$display("Matrix multiplier done");
 
 		
 		// quick sort
-		//wait(checkbits == 16'hAB40);
+		//wait(checkbits == 16'hAB70);
 		$display("Quick Sort started");
 		wait(checkbits == 16'd40);
 		$display("Call function qsort() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
@@ -244,8 +235,22 @@ module uart_tb;
 		$display("Call function qsortl() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
 		wait(checkbits == 16'd2669);
 		$display("Call function qsort() in User Project BRAM (mprjram, 0x38000000) return value passed, 0x%x", checkbits);
-		//wait(checkbits == 16'hAB51);
+		//wait(checkbits == 16'hAB71);
 		$display("Quick sort done");
+		
+		$display("Firmware ended");
+		
+		
+		
+		wait(checkbits == 16'hAB51);
+		$display("LA Test passed");
+		$finish;		
+	end
+
+	task send_data_1;begin
+		@(posedge clock);
+		tx_start = 1;
+		tx_data = 15;
 		
 		#50;
 		wait(!tx_busy);
