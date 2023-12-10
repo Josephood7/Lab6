@@ -22,7 +22,9 @@
 #ifdef USER_PROJ_IRQ0_EN
 #include <irq_vex.h>
 #endif
+//#include <unistd.h>
 
+#define d (*(volatile uint32_t *) 0x30000000)
 
 extern void uart_write();
 extern void uart_write_char();
@@ -81,9 +83,14 @@ void main()
 			break;
 		}
 	}*/
-
-
-
+	
+	int NN = 5000;
+	//sleep(10);
+	int i = 0;
+	while(i < NN){
+		i++;
+	}
+	reg_mprj_datal = 0xAB400000;
 	/*for(int i = 0; i < 4; i++){
 		uart_write(i);
 	}*/
@@ -141,7 +148,7 @@ void main()
 	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;    // [63:32]
 	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
 	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
-	reg_mprj_datal = 0xAB400000;
+	reg_mprj_datal = 0xAB500000;
 	reg_la1_data = 0x00000000;
 	reg_la1_oenb = reg_la1_iena = 0x00000000;  
 	
@@ -160,6 +167,10 @@ void main()
 	reg_mprj_datal = *(tmp_f+10) << 16;
 	reg_mprj_datal = 0xAB510000;
 
+	i = 0;
+	while(i < NN){
+		i++;
+	}
 	// matrix multiplier
 	reg_mprj_io_31 = GPIO_MODE_MGMT_STD_OUTPUT;
         reg_mprj_io_30 = GPIO_MODE_MGMT_STD_OUTPUT;
@@ -203,7 +214,7 @@ void main()
 	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;    // [63:32]
 	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
 	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
-	//reg_mprj_datal = 0xAB400000;
+	reg_mprj_datal = 0xAB600000;
 	reg_la1_data = 0x00000000;
 	reg_la1_oenb = reg_la1_iena = 0x00000000;    
 
@@ -213,9 +224,22 @@ void main()
 	reg_mprj_datal = *(tmp_m+2) << 16;
 	reg_mprj_datal = *(tmp_m+3) << 16;	
 	reg_mprj_datal = *(tmp_m+9) << 16;	
-
-	//reg_mprj_datal = 0xAB510000;
 	
+	#ifdef USER_PROJ_IRQ0_EN	
+	// unmask USER_IRQ_0_INTERRUPT
+	mask = irq_getmask();
+	mask |= 1 << USER_IRQ_0_INTERRUPT; // USER_IRQ_0_INTERRUPT = 2
+	irq_setmask(mask);
+	// enable user_irq_0_ev_enable
+	user_irq_0_ev_enable_write(1);	
+	#endif
+	
+	reg_mprj_datal = 0xAB610000;
+	
+	i = 0;
+	while(i < NN){
+		i++;
+	}
 	// quick sort
 	reg_mprj_io_31 = GPIO_MODE_MGMT_STD_OUTPUT;
         reg_mprj_io_30 = GPIO_MODE_MGMT_STD_OUTPUT;
@@ -259,7 +283,7 @@ void main()
 	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;    // [63:32]
 	reg_la2_oenb = reg_la2_iena = 0x00000000;    // [95:64]
 	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
-	//reg_mprj_datal = 0xAB400000;
+	reg_mprj_datal = 0xAB700000;
 	reg_la1_data = 0x00000000;
 	reg_la1_oenb = reg_la1_iena = 0x00000000;    
 
@@ -267,7 +291,7 @@ void main()
 	reg_mprj_datal = *tmp_q << 16;
 	reg_mprj_datal = *(tmp_q+1) << 16;
 	reg_mprj_datal = *(tmp_q+2) << 16;
-	reg_mprj_datal = *(tmp_q+3) << 16;
+	reg_mprj_datal = *(tmp_q+3) << 16;	
 	reg_mprj_datal = *(tmp_q+4) << 16;
 	reg_mprj_datal = *(tmp_q+5) << 16;
 	reg_mprj_datal = *(tmp_q+6) << 16;
@@ -276,6 +300,13 @@ void main()
 	reg_mprj_datal = *(tmp_q+9) << 16;	
 
 	reg_mprj_datal = *tmp_q << 16;
+	reg_mprj_datal = 0xAB710000;
+	
+	i = 0;
+	while(i < NN){
+		i++;
+	}
+	// Uart
 	
 	//reg_spi_enable = 1;
 	reg_wb_enable = 1;
@@ -328,15 +359,21 @@ void main()
 	reg_la3_oenb = reg_la3_iena = 0x00000000;    // [127:96]
 
 	// Flag start of the test 
-	//reg_mprj_datal = 0xAB400000;
+	//reg_mprj_datal = 0xAB800000;
 
 	// Set Counter value to zero through LA probes [63:32]
 	reg_la1_data = 0x00000000;
 
 	// Configure LA probes from [63:32] as inputs to disable counter write
 	reg_la1_oenb = reg_la1_iena = 0x00000000;
+
+	//uart_write(1);
 	
-	reg_mprj_datal = 0xAB510000;
+	//int* tmp_ur = uart_read();
+	//reg_mprj_datal = *tmp_ur << 16;
+	
+	//reg_mprj_datal = 0xAB810000;
+	reg_mprj_datal = 0xAB410000;
 #ifdef USER_PROJ_IRQ0_EN	
 	// unmask USER_IRQ_0_INTERRUPT
 	mask = irq_getmask();
